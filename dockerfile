@@ -37,6 +37,12 @@ ENV UV_INSTALL_DIR="/root/.local/bin"
 ENV PATH="${UV_INSTALL_DIR}:${PATH}"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && uv --version
 
+# Copy rather than hardlink when populating project venvs. Inside a
+# devcontainer the uv cache and .venv typically live on different
+# overlay mounts, so hardlinks fail and uv emits a noisy warning on
+# every install. The copy is fast enough for this template's scale.
+ENV UV_LINK_MODE=copy
+
 # Let uv manage Python versions (replaces pyenv). Pre-install the same two
 # versions the previous template provided, so `uv python pin 3.9` / `3.11`
 # just works inside generated projects.

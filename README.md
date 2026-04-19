@@ -27,12 +27,16 @@ A template repository for developing Python packages using [uv](https://docs.ast
 
 ## Project Setup
 
+> This section and the [Example Project](#example-project) section below are **two alternative walkthroughs** — a generic one here and a concrete "hellopy" worked example further down. Pick one; running both in sequence will fail because the project can only be initialized once.
+
 Open a terminal in your container workspace and run the following:
 
-1. Initialize a uv project (creates `pyproject.toml` with PEP 621 metadata and a `.python-version`):
+1. Initialize a uv project as a library (creates `pyproject.toml` with PEP 621 metadata and a `.python-version`):
    ```bash
    uv init --lib
    ```
+
+   > **Important:** run `uv init` *before* any `uv add`. If you run `uv add` in an uninitialized directory, uv will silently create an **application** project (not a library) using the folder name — and then `uv init --lib` will refuse to run because the project already exists.
 
 2. Add development-only dependencies (recorded under the `dev` dependency group in `pyproject.toml`, not shipped to end users):
    ```bash
@@ -64,6 +68,8 @@ uv run quarto render
 
 ## Example Project
 
+> This is a concrete worked example. It is an **alternative** to [Project Setup](#project-setup) above — don't run both in the same project directory.
+
 After creating a new repository from this template:
 
 > Alternatively, replace steps 1 and 2 by clicking 'Use this template' in this repository, then select 'Open in a codespace' to try it out directly in your browser.
@@ -84,15 +90,33 @@ After creating a new repository from this template:
        --author-from none \
        --python 3.11
    ```
-   Then open `pyproject.toml` and set the `authors = [...]` field to your name/email.
+   With `--author-from none` uv deliberately omits the `authors` field. To add it,
+   open `pyproject.toml` and insert the following inside the `[project]` table
+   (adjust the name and email):
+   ```toml
+   authors = [
+       {name = "Your Name", email = "your.email@example.com"},
+   ]
+   ```
+   If you'd rather have uv auto-detect from your git config, drop `--author-from none`
+   from the init command — uv's default is `--author-from auto`, which populates this
+   field from `git config user.name` / `user.email`.
 
-4. Replace the auto-generated package contents:
+4. `uv init --lib` already created `src/hellopy/__init__.py` (with a sample
+   `hello()` function) and `src/hellopy/py.typed`. Add a separate `hello.py`
+   module alongside them:
    ```bash
-   rm -rf src/hellopy && \
-   mkdir -p src/hellopy && \
-   touch src/hellopy/__init__.py && \
    touch src/hellopy/hello.py
    ```
+
+   Then replace the contents of `src/hellopy/__init__.py` with a single re-export
+   so `from hellopy import hello` works from callers:
+   ```python
+   from hellopy.hello import hello
+   ```
+
+   > Keep `src/hellopy/py.typed` — it's an empty marker file that tells type
+   > checkers your package ships with type hints (PEP 561).
 
 5. Populate `hello.py` with the following
    ```python
